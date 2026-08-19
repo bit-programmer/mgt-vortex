@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/nocturne-5df5f090-ca6c-4d00-9c79-f3fe69ae21ac/styles.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<style>
+  body { margin: 0; }
+  @keyframes vgpulse { 0%,100% { opacity: 1 } 50% { opacity: .45 } }
+  ::-webkit-scrollbar { width: 10px; height: 10px }
+  ::-webkit-scrollbar-thumb { background: #3f424d; border-radius: 8px }
+</style>
+</helmet>
+
+<div style="min-height: 100vh; background: radial-gradient(1200px 600px at 80% -10%, #1e2036, var(--color-bg) 60%); color: var(--color-text); font-family: var(--font-body); padding-bottom: 48px;">
+
+  <header style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap; padding: 16px 24px; border-bottom: 1px solid var(--color-divider);">
+    <div style="display: flex; align-items: baseline; gap: 10px; margin-right: auto;">
+      <span style="font-family: var(--font-heading); font-weight: 500; font-size: 19px; letter-spacing: -0.01em;">{{ storeName }}</span>
+      <span style="font-size: 12px; color: var(--color-neutral-500);">Maninagar, Ahmedabad</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--color-neutral-400);">
+      <i class="ph ph-clock"></i><span>{{ clock }}</span>
+    </div>
+    <button class="btn btn-primary" onClick="{{ openBooking }}" style="font-size: 14px; padding: 8px 16px;">
+      <i class="ph ph-plus"></i> New booking
+    </button>
+  </header>
+
+  <nav style="display: flex; gap: 4px; padding: 10px 24px 0;">
+    <button onClick="{{ goDashboard }}" style="{{ tabDashStyle }}" style-hover="background: rgba(233,233,237,0.06)"><i class="ph ph-squares-four"></i> Live floor</button>
+    <button onClick="{{ goSales }}" style="{{ tabSalesStyle }}" style-hover="background: rgba(233,233,237,0.06)"><i class="ph ph-chart-line-up"></i> Sales</button>
+    <button onClick="{{ goBlueprint }}" style="{{ tabBlueStyle }}" style-hover="background: rgba(233,233,237,0.06)"><i class="ph ph-blueprint"></i> Blueprint</button>
+  </nav>
+
+  <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}">
+    <div style="padding: 20px 24px 0;">
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--color-divider); border: 1px solid var(--color-divider); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 18px;">
+        <div style="background: var(--color-bg); padding: 14px 16px;">
+          <div style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-neutral-500);">Capacity</div>
+          <div style="font-family: var(--font-heading); font-size: 26px; line-height: 1.1; margin-top: 4px;">{{ capacityLabel }}</div>
+          <div style="font-size: 12px; color: var(--color-neutral-500);">players on floor</div>
+        </div>
+        <div style="background: var(--color-bg); padding: 14px 16px;">
+          <div style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-neutral-500);">Stations</div>
+          <div style="font-family: var(--font-heading); font-size: 26px; line-height: 1.1; margin-top: 4px;">{{ stationsLabel }}</div>
+          <div style="font-size: 12px; color: var(--color-neutral-500);">free right now</div>
+        </div>
+        <div style="background: var(--color-bg); padding: 14px 16px;">
+          <div style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-neutral-500);">Active</div>
+          <div style="font-family: var(--font-heading); font-size: 26px; line-height: 1.1; margin-top: 4px;">{{ activeCount }}</div>
+          <div style="font-size: 12px; color: var(--color-neutral-500);">sessions running</div>
+        </div>
+        <div style="background: var(--color-bg); padding: 14px 16px;">
+          <div style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-neutral-500);">Today</div>
+          <div style="font-family: var(--font-heading); font-size: 26px; line-height: 1.1; margin-top: 4px; color: var(--color-accent-300);">{{ todayRevenue }}</div>
+          <div style="font-size: 12px; color: var(--color-neutral-500);">collected + running</div>
+        </div>
+        <div style="background: var(--color-bg); padding: 14px 16px;">
+          <div style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-neutral-500);">Rate</div>
+          <div style="font-family: var(--font-heading); font-size: 26px; line-height: 1.1; margin-top: 4px;">{{ rateLabel }}</div>
+          <div style="font-size: 12px; color: var(--color-neutral-500);">{{ offerLabel }}</div>
+        </div>
+      </div>
+
+      <sc-if value="{{ hasAlerts }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px;">
+          <sc-for list="{{ alerts }}" as="a" hint-placeholder-count="1">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-radius: var(--radius-md); border: 1px solid {{ a.color }}; background: rgba(255,255,255,0.03);">
+              <i class="ph ph-warning-circle" style="color: {{ a.color }}; animation: vgpulse 1.6s ease-in-out infinite;"></i>
+              <span style="font-size: 13px;">{{ a.text }}</span>
+              <button class="btn btn-ghost" onClick="{{ a.onOpen }}" style="margin-left: auto; font-size: 12px;">Open</button>
+              <button class="btn btn-ghost" onClick="{{ a.onDismiss }}" style="font-size: 12px; color: var(--color-neutral-400);">Dismiss</button>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 14px;">
+        <sc-for list="{{ cards }}" as="s" hint-placeholder-count="5">
+          <div style="{{ s.cardStyle }}">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-family: var(--font-heading); font-size: 19px;">{{ s.name }}</span>
+              <span style="font-size: 11px; color: var(--color-neutral-600);">{{ s.setLabel }}</span>
+              <span style="{{ s.tagStyle }}">{{ s.statusLabel }}</span>
+            </div>
+
+            <sc-if value="{{ s.busy }}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 12px;">
+                  <div>
+                    <div style="font-size: 15px;">{{ s.customer }}</div>
+                    <div style="font-size: 12px; color: var(--color-neutral-500);">{{ s.playersLabel }} · {{ s.gamesLabel }}</div>
+                  </div>
+                  <div style="text-align: right;">
+                    <div style="font-family: var(--font-heading); font-size: 30px; line-height: 1; letter-spacing: -0.02em; color: {{ s.timeColor }};">{{ s.remaining }}</div>
+                    <div style="font-size: 11px; color: var(--color-neutral-500);">{{ s.window }}</div>
+                  </div>
+                </div>
+                <div style="height: 4px; border-radius: 4px; background: var(--color-neutral-900); overflow: hidden;">
+                  <div style="height: 100%; width: {{ s.progress }}; background: {{ s.timeColor }};"></div>
+                </div>
+                <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--color-neutral-500);">
+                  <span>{{ s.extLabel }}</span>
+                  <span style="font-family: var(--font-heading); font-size: 16px; color: var(--color-text);">{{ s.bill }}</span>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                  <button class="btn btn-secondary" onClick="{{ s.onOpen }}" style="font-size: 12px; padding: 6px 10px;"><i class="ph ph-list-bullets"></i> Manage</button>
+                  <button class="btn btn-secondary" onClick="{{ s.onExtend }}" style="font-size: 12px; padding: 6px 10px;"><i class="ph ph-clock-clockwise"></i> +30 min</button>
+                  <button class="btn btn-secondary" onClick="{{ s.onItems }}" style="font-size: 12px; padding: 6px 10px;"><i class="ph ph-hamburger"></i> Add items</button>
+                  <button class="btn btn-primary" onClick="{{ s.onCheckout }}" style="font-size: 12px; padding: 6px 10px; margin-left: auto;">Checkout</button>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ s.free }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; gap: 12px; align-items: flex-start; padding: 10px 0 2px;">
+                <div style="font-size: 13px; color: var(--color-neutral-500);">Free since {{ s.freeSince }} · seats 4</div>
+                <button class="btn btn-primary" onClick="{{ s.onAssign }}" style="font-size: 13px;"><i class="ph ph-game-controller"></i> Assign customer</button>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isSales }}" hint-placeholder-val="{{ false }}">
+    <div style="padding: 20px 24px 0;">
+      <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px;">
+        <sc-for list="{{ ranges }}" as="r" hint-placeholder-count="4">
+          <button onClick="{{ r.onPick }}" style="{{ r.style }}" style-hover="background: rgba(233,233,237,0.06)">{{ r.label }}</button>
+        </sc-for>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 22px;">
+        <sc-for list="{{ salesStats }}" as="k" hint-placeholder-count="6">
+          <div style="padding: 14px 16px; border-radius: var(--radius-md); background: var(--color-surface); box-shadow: var(--shadow-sm);">
+            <div style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-neutral-500);">{{ k.label }}</div>
+            <div style="font-family: var(--font-heading); font-size: 24px; margin-top: 4px;">{{ k.value }}</div>
+            <div style="font-size: 11px; color: var(--color-neutral-600);">{{ k.note }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 22px;">
+        <div style="padding: 16px; border-radius: var(--radius-md); background: var(--color-surface);">
+          <h6 style="margin: 0 0 12px; color: var(--color-neutral-400);">Revenue mix</h6>
+          <sc-for list="{{ mix }}" as="m" hint-placeholder-count="3">
+            <div style="margin-bottom: 10px;">
+              <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;"><span>{{ m.label }}</span><span>{{ m.value }}</span></div>
+              <div style="height: 6px; border-radius: 6px; background: var(--color-neutral-900);"><div style="height: 100%; border-radius: 6px; width: {{ m.pct }}; background: var(--color-accent-500);"></div></div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="padding: 16px; border-radius: var(--radius-md); background: var(--color-surface);">
+          <h6 style="margin: 0 0 12px; color: var(--color-neutral-400);">Most played</h6>
+          <sc-for list="{{ topGames }}" as="g" hint-placeholder-count="4">
+            <div style="margin-bottom: 10px;">
+              <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;"><span>{{ g.label }}</span><span style="color: var(--color-neutral-500);">{{ g.value }}</span></div>
+              <div style="height: 6px; border-radius: 6px; background: var(--color-neutral-900);"><div style="height: 100%; border-radius: 6px; width: {{ g.pct }}; background: var(--color-accent-700);"></div></div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="padding: 16px; border-radius: var(--radius-md); background: var(--color-surface);">
+          <h6 style="margin: 0 0 12px; color: var(--color-neutral-400);">Peak hours</h6>
+          <div style="display: flex; align-items: flex-end; gap: 5px; height: 120px;">
+            <sc-for list="{{ peakHours }}" as="h" hint-placeholder-count="8">
+              <div style="flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; height: 100%;">
+                <div style="width: 100%; border-radius: 3px 3px 0 0; height: {{ h.pct }}; background: var(--color-accent-600);"></div>
+                <span style="font-size: 10px; color: var(--color-neutral-600);">{{ h.label }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <h6 style="color: var(--color-neutral-400); margin-bottom: 6px;">Session history</h6>
+      <div style="overflow-x: auto; padding-bottom: 20px;">
+        <table class="table">
+          <thead><tr><th>Bill</th><th>Date</th><th>Customer</th><th>PS5</th><th>Players</th><th>Game</th><th>Duration</th><th>Gaming</th><th>F&amp;B</th><th>Total</th><th>Payment</th></tr></thead>
+          <tbody>
+            <sc-for list="{{ history }}" as="h" hint-placeholder-count="6">
+              <tr>
+                <td style="color: var(--color-neutral-500); font-size: 12px;">{{ h.id }}</td>
+                <td style="font-size: 12px;">{{ h.date }}</td>
+                <td>{{ h.customer }}</td>
+                <td>{{ h.station }}</td>
+                <td>{{ h.players }}</td>
+                <td style="font-size: 12px; color: var(--color-neutral-400);">{{ h.game }}</td>
+                <td style="font-size: 12px;">{{ h.duration }}</td>
+                <td>{{ h.gaming }}</td>
+                <td>{{ h.fnb }}</td>
+                <td style="font-family: var(--font-heading);">{{ h.total }}</td>
+                <td><span class="tag tag-neutral">{{ h.method }}</span></td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isBlueprint }}" hint-placeholder-val="{{ false }}">
+    <div style="padding: 24px; max-width: 1040px;">
+      <h3 style="margin-bottom: 4px;">Product blueprint</h3>
+      <p style="color: var(--color-neutral-500); font-size: 14px; max-width: 62ch;">The spec behind the prototype: what exists, what talks to what, and the rules the floor screen enforces. Scaled for 5 stations today, unchanged at 20.</p>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-top: 20px;">
+        <sc-for list="{{ blueprint }}" as="b" hint-placeholder-count="6">
+          <div style="padding: 16px; border-radius: var(--radius-md); background: var(--color-surface); box-shadow: var(--shadow-sm);">
+            <div class="card-kicker">{{ b.kicker }}</div>
+            <div style="font-family: var(--font-heading); font-size: 17px; margin: 2px 0 8px;">{{ b.title }}</div>
+            <sc-for list="{{ b.lines }}" as="l" hint-placeholder-count="4">
+              <div style="display: flex; gap: 8px; font-size: 13px; color: var(--color-neutral-300); padding: 3px 0;">
+                <span style="color: var(--color-accent-500);">›</span><span>{{ l }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showBooking }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" style="z-index: 40; overflow: auto; padding: 24px; align-items: start;">
+      <div class="dialog" style="width: min(760px, 100%); gap: 14px;">
+        <div style="display: flex; align-items: center;">
+          <div class="dialog-title" style="margin-right: auto;">New booking</div>
+          <button class="btn btn-ghost" onClick="{{ closeDialog }}"><i class="ph ph-x"></i></button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+          <div class="field">
+            <label>Mobile number</label>
+            <input class="input" value="{{ form.phone }}" onChange="{{ onPhone }}" placeholder="98xxxxxxxx" inputmode="numeric" />
+          </div>
+          <div class="field">
+            <label>Booking name</label>
+            <input class="input" value="{{ form.name }}" onChange="{{ onName }}" placeholder="Meet Shah" />
+          </div>
+        </div>
+
+        <sc-if value="{{ knownCustomer }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-wrap: wrap; gap: 14px; padding: 10px 12px; border-radius: var(--radius-md); border: 1px solid var(--color-accent-800); background: rgba(145,132,217,0.08); font-size: 12px;">
+            <span style="color: var(--color-accent-300);"><i class="ph ph-user-check"></i> Regular</span>
+            <span>{{ known.visits }} visits</span>
+            <span>{{ known.spend }} lifetime</span>
+            <span>Last {{ known.last }}</span>
+            <span>Plays {{ known.fav }}</span>
+          </div>
+        </sc-if>
+
+        <div>
+          <div style="font-size: 12px; color: var(--color-neutral-400); margin-bottom: 5px;">Players</div>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <sc-for list="{{ playerCounts }}" as="p" hint-placeholder-count="4">
+              <button onClick="{{ p.onPick }}" style="{{ p.style }}">{{ p.label }}</button>
+            </sc-for>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-top: 10px;">
+            <sc-for list="{{ playerFields }}" as="pf" hint-placeholder-count="2">
+              <input class="input" value="{{ pf.value }}" onChange="{{ pf.onChange }}" placeholder="{{ pf.placeholder }}" />
+            </sc-for>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size: 12px; color: var(--color-neutral-400); margin-bottom: 5px;">Station</div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px;">
+            <sc-for list="{{ stationOptions }}" as="o" hint-placeholder-count="5">
+              <button onClick="{{ o.onPick }}" disabled="{{ o.disabled }}" style="{{ o.style }}">
+                <span style="font-family: var(--font-heading); font-size: 15px;">{{ o.name }}</span>
+                <span style="font-size: 11px; color: {{ o.statusColor }};">{{ o.status }}</span>
+                <span style="font-size: 10px; color: var(--color-neutral-600);">{{ o.setLabel }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div>
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+            <span style="font-size: 12px; color: var(--color-neutral-400);">Games on this station</span>
+            <input class="input" value="{{ form.gameQuery }}" onChange="{{ onGameQuery }}" placeholder="Search games" style="max-width: 200px; min-height: 30px; font-size: 13px;" />
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+            <sc-for list="{{ gameOptions }}" as="g" hint-placeholder-count="6">
+              <button onClick="{{ g.onToggle }}" style="{{ g.style }}">{{ g.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size: 12px; color: var(--color-neutral-400); margin-bottom: 5px;">Duration</div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+            <sc-for list="{{ durations }}" as="d" hint-placeholder-count="5">
+              <button onClick="{{ d.onPick }}" style="{{ d.style }}">{{ d.label }}</button>
+            </sc-for>
+            <input class="input" value="{{ form.customMin }}" onChange="{{ onCustomMin }}" placeholder="Custom min" style="max-width: 120px; min-height: 32px; font-size: 13px;" />
+          </div>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 12px 14px; border-radius: var(--radius-md); background: rgba(255,255,255,0.03); border: 1px solid var(--color-divider);">
+          <div>
+            <div style="font-size: 11px; color: var(--color-neutral-500);">Session window</div>
+            <div style="font-size: 14px;">{{ preview.window }}</div>
+          </div>
+          <div>
+            <div style="font-size: 11px; color: var(--color-neutral-500);">Charged players</div>
+            <div style="font-size: 14px;">{{ preview.charged }}</div>
+          </div>
+          <div style="margin-left: auto; text-align: right;">
+            <div style="font-size: 11px; color: var(--color-neutral-500);">Gaming charge</div>
+            <div style="font-family: var(--font-heading); font-size: 24px; color: var(--color-accent-300);">{{ preview.total }}</div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 12px; color: var(--color-neutral-500); margin-right: auto;">{{ bookingHint }}</span>
+          <button class="btn btn-secondary" onClick="{{ closeDialog }}">Cancel</button>
+          <button class="btn btn-primary" onClick="{{ startSession }}" disabled="{{ startDisabled }}"><i class="ph ph-play"></i> Start session</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showSession }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" style="z-index: 40; overflow: auto; padding: 24px; align-items: start;">
+      <div class="dialog" style="width: min(880px, 100%); gap: 14px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div class="dialog-title" style="margin-right: auto;">{{ live.title }}</div>
+          <span style="{{ live.tagStyle }}">{{ live.statusLabel }}</span>
+          <button class="btn btn-ghost" onClick="{{ closeDialog }}"><i class="ph ph-x"></i></button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: flex; align-items: center; gap: 16px; padding: 14px; border-radius: var(--radius-md); background: rgba(255,255,255,0.03);">
+              <div>
+                <div style="font-family: var(--font-heading); font-size: 38px; line-height: 1; color: {{ live.timeColor }};">{{ live.remaining }}</div>
+                <div style="font-size: 11px; color: var(--color-neutral-500);">remaining · ends {{ live.end }}</div>
+              </div>
+              <div style="margin-left: auto; text-align: right; font-size: 12px; color: var(--color-neutral-400);">
+                <div>{{ live.playersLabel }}</div>
+                <div>{{ live.gamesLabel }}</div>
+                <div>Started {{ live.start }}</div>
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size: 12px; color: var(--color-neutral-400); margin-bottom: 6px;">Extend session</div>
+              <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <sc-for list="{{ extendOptions }}" as="e" hint-placeholder-count="3">
+                  <button class="btn btn-secondary" onClick="{{ e.onPick }}" style="font-size: 13px;">{{ e.label }}</button>
+                </sc-for>
+              </div>
+              <div style="font-size: 12px; color: var(--color-neutral-500); margin-top: 6px;">{{ live.extLog }}</div>
+            </div>
+
+            <div>
+              <div style="font-size: 12px; color: var(--color-neutral-400); margin-bottom: 6px;">Add snacks &amp; drinks</div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; max-height: 230px; overflow: auto;">
+                <sc-for list="{{ menu }}" as="m" hint-placeholder-count="8">
+                  <button class="btn btn-secondary" onClick="{{ m.onAdd }}" style="justify-content: space-between; font-size: 12px; padding: 7px 10px;">
+                    <span>{{ m.name }}</span><span style="color: var(--color-neutral-500);">{{ m.price }}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: var(--radius-md); background: rgba(255,255,255,0.03); border: 1px solid var(--color-divider);">
+            <h6 style="margin: 0; color: var(--color-neutral-400);">Live bill</h6>
+            <div style="display: flex; justify-content: space-between; font-size: 13px;">
+              <span>{{ live.gamingLine }}</span><span>{{ live.gaming }}</span>
+            </div>
+            <sc-for list="{{ live.items }}" as="it" hint-placeholder-count="2">
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 13px;">
+                <span style="flex: 1;">{{ it.name }}</span>
+                <button class="btn btn-ghost" onClick="{{ it.onMinus }}" style="padding: 0 6px;">−</button>
+                <span style="min-width: 16px; text-align: center;">{{ it.qty }}</span>
+                <button class="btn btn-ghost" onClick="{{ it.onPlus }}" style="padding: 0 6px;">+</button>
+                <span style="min-width: 52px; text-align: right;">{{ it.total }}</span>
+              </div>
+            </sc-for>
+            <div class="hr" style="margin: 6px 0;"></div>
+            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+              <span style="font-size: 13px; color: var(--color-neutral-400);">Grand total</span>
+              <span style="font-family: var(--font-heading); font-size: 28px;">{{ live.total }}</span>
+            </div>
+            <button class="btn btn-primary btn-block" onClick="{{ goCheckout }}"><i class="ph ph-receipt"></i> End session &amp; checkout</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showCheckout }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" style="z-index: 50; overflow: auto; padding: 24px; align-items: start;">
+      <div class="dialog" style="width: min(460px, 100%);">
+        <div style="display: flex; align-items: center;">
+          <div class="dialog-title" style="margin-right: auto;">Checkout · {{ live.title }}</div>
+          <button class="btn btn-ghost" onClick="{{ backToSession }}"><i class="ph ph-x"></i></button>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 12px 14px; border-radius: var(--radius-md); background: rgba(255,255,255,0.03);">
+          <span style="font-size: 13px; color: var(--color-neutral-400);">Amount due</span>
+          <span style="font-family: var(--font-heading); font-size: 32px; color: var(--color-accent-300);">{{ live.total }}</span>
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <sc-for list="{{ payModes }}" as="p" hint-placeholder-count="3">
+            <button onClick="{{ p.onPick }}" style="{{ p.style }}">{{ p.label }}</button>
+          </sc-for>
+        </div>
+        <sc-if value="{{ isSplit }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="field"><label>Cash</label><input class="input" value="{{ pay.cash }}" onChange="{{ onCash }}" inputmode="numeric" /></div>
+            <div class="field"><label>UPI</label><input class="input" value="{{ pay.upi }}" onChange="{{ onUpi }}" inputmode="numeric" /></div>
+          </div>
+          <div style="font-size: 12px; color: {{ splitColor }};">{{ splitNote }}</div>
+        </sc-if>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" onClick="{{ backToSession }}">Back</button>
+          <button class="btn btn-primary" onClick="{{ completePayment }}"><i class="ph ph-check"></i> Mark paid</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showReceipt }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" style="z-index: 60; overflow: auto; padding: 24px; align-items: start;">
+      <div class="dialog" style="width: min(400px, 100%); gap: 10px;">
+        <div style="text-align: center;">
+          <div style="font-family: var(--font-heading); font-size: 18px;">{{ storeName }}</div>
+          <div style="font-size: 11px; color: var(--color-neutral-500);">Maninagar, Ahmedabad · 11 PM – 1 AM</div>
+          <div style="font-size: 11px; color: var(--color-neutral-500);">{{ receipt.id }} · {{ receipt.date }}</div>
+        </div>
+        <div class="hr" style="margin: 4px 0;"></div>
+        <sc-for list="{{ receipt.meta }}" as="r" hint-placeholder-count="6">
+          <div style="display: flex; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--color-neutral-500);">{{ r.k }}</span><span>{{ r.v }}</span>
+          </div>
+        </sc-for>
+        <div class="hr" style="margin: 4px 0;"></div>
+        <sc-for list="{{ receipt.lines }}" as="l" hint-placeholder-count="3">
+          <div style="display: flex; justify-content: space-between; font-size: 13px;">
+            <span>{{ l.k }}</span><span>{{ l.v }}</span>
+          </div>
+        </sc-for>
+        <div class="hr" style="margin: 4px 0;"></div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+          <span style="font-family: var(--font-heading); font-size: 15px;">Total</span>
+          <span style="font-family: var(--font-heading); font-size: 26px;">{{ receipt.total }}</span>
+        </div>
+        <div style="font-size: 12px; color: var(--color-neutral-500); text-align: center;">{{ receipt.payment }}</div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" onClick="{{ printReceipt }}"><i class="ph ph-printer"></i> Print</button>
+          <button class="btn btn-primary" onClick="{{ closeDialog }}">Done</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;storeName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Vortex Gaming Lounge&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;ratePerPlayerHour&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:69,&quot;min&quot;:20,&quot;max&quot;:300,&quot;unit&quot;:&quot;₹&quot;,&quot;tsType&quot;:&quot;number&quot;},&quot;openingWeekOffer&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+const SET1 = ['FC 26','WWE 2K26','Cricket 24','Tekken 8','GTA 5','Uncharted','Mortal Kombat'];
+const SET2 = ['FC 26','WWE 2K26','Mortal Kombat','Tekken 8','GTA 5'];
+const MENU = [
+  {name:'Coke', price:40}, {name:'Pepsi', price:40}, {name:'Sprite', price:40}, {name:'Water', price:20},
+  {name:'Red Bull', price:130}, {name:'Cold Coffee', price:80}, {name:'Chips', price:30}, {name:'French Fries', price:120},
+  {name:'Sandwich', price:90}, {name:'Pizza', price:180}, {name:'Maggi', price:70}, {name:'Nachos', price:110}
+];
+const COL = {
+  free: '#9397ab', busy: '#968ae0', soon: '#d9a441', over: '#d97a6c', maint: '#595d6c'
+};
+const money = n => '₹' + Math.round(n).toLocaleString('en-IN');
+const hhmm = ms => new Date(ms).toLocaleTimeString('en-IN', {hour:'numeric', minute:'2-digit'});
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const now = Date.now(), M = 60000;
+    const stations = [1,2,3,4,5].map(i => ({
+      id: i, name: 'PS5 #' + i, set: i <= 3 ? 1 : 2,
+      freeSince: hhmm(now - (i * 17 + 20) * M)
+    }));
+    const mk = (o) => Object.assign({items: [], extensions: [], notes: ''}, o);
+    const sessions = [
+      mk({id:'S-1', station:1, customer:'Rahul Mehta', phone:'9825012345', players:['Rahul','Jay','Amit'],
+        games:['GTA 5'], startMs: now - 48*M, durationMin: 60,
+        items:[{name:'Coke', price:40, qty:2},{name:'French Fries', price:120, qty:1}]}),
+      mk({id:'S-2', station:2, customer:'Meet Shah', phone:'9998877665', players:['Meet','Dhruv','Krish','Vivek'],
+        games:['FC 26','Tekken 8'], startMs: now - 95*M, durationMin: 60,
+        extensions:[{min:60, at: now - 12*M}], items:[{name:'Pizza', price:180, qty:1}]}),
+      mk({id:'S-3', station:4, customer:'Aarav Patel', phone:'9712345678', players:['Aarav','Nishit'],
+        games:['WWE 2K26'], startMs: now - 8*M, durationMin: 120, items:[]})
+    ];
+    this.state = {
+      view: 'dashboard', now, stations, sessions, history: this.seedHistory(now),
+      dialog: null, activeId: null, alerts: [], billNo: 126, range: 'Today',
+      form: this.blankForm(1), pay: {mode:'cash', cash:'', upi:''}, receipt: null
+    };
+    this.fired = {};
+  }
+
+  blankForm(station) {
+    return {name:'', phone:'', playerCount:2, players:['',''], station, games:[], gameQuery:'', durationMin:60, customMin:''};
+  }
+
+  seedHistory(now) {
+    let seed = 7;
+    const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
+    const names = ['Rahul Mehta','Meet Shah','Aarav Patel','Jay Trivedi','Dhruv Soni','Karan Joshi','Nisha Rao','Vivek Nair','Harsh Desai'];
+    const games = SET1;
+    const out = [];
+    for (let d = 0; d < 12; d++) {
+      const day = now - d * 86400000;
+      const count = 3 + Math.floor(rnd() * 5);
+      for (let i = 0; i < count; i++) {
+        const players = 1 + Math.floor(rnd() * 4);
+        const durationMin = [30,60,60,120,180][Math.floor(rnd() * 5)];
+        const hour = 12 + Math.floor(rnd() * 11);
+        const start = new Date(day); start.setHours(hour, [0,15,30,45][Math.floor(rnd()*4)], 0, 0);
+        const charged = Math.ceil(players / 2);
+        const gaming = Math.round(durationMin / 60 * charged * 69);
+        const fnb = [0,0,40,120,160,250][Math.floor(rnd() * 6)];
+        out.push({
+          id: 'GS-2026-00' + (100 + out.length), startMs: start.getTime(), durationMin,
+          customer: names[Math.floor(rnd() * names.length)], station: 1 + Math.floor(rnd() * 5),
+          players, game: games[Math.floor(rnd() * games.length)], gaming, fnb,
+          total: gaming + fnb, method: rnd() > 0.45 ? 'UPI' : 'Cash'
+        });
+      }
+    }
+    return out;
+  }
+
+  componentDidMount() { this.timer = setInterval(() => this.tick(), 1000); }
+  componentWillUnmount() { clearInterval(this.timer); }
+
+  tick = () => {
+    const now = Date.now();
+    const alerts = this.state.alerts.slice();
+    this.state.sessions.forEach(s => {
+      const left = Math.ceil((this.endMs(s) - now) / 60000);
+      [15, 10, 5, 0].forEach(mark => {
+        const key = s.id + ':' + this.endMs(s) + ':' + mark;
+        if (left <= mark && left > mark - 1 && !this.fired[key]) {
+          this.fired[key] = true;
+          alerts.unshift({
+            key, sid: s.id,
+            text: mark === 0 ? 'PS5 #' + s.station + ' — session expired, ' + s.customer + ' is over time'
+              : 'PS5 #' + s.station + ' — ' + mark + ' minutes remaining (' + s.customer + ')',
+            color: mark <= 5 ? COL.over : COL.soon
+          });
+        }
+      });
+    });
+    this.setState({now, alerts: alerts.slice(0, 4)});
+  };
+
+  rate = () => Number(this.props.ratePerPlayerHour ?? 69);
+  offer = () => (this.props.openingWeekOffer ?? true);
+  chargedPlayers = n => this.offer() ? Math.ceil(n / 2) : n;
+  extMin = s => s.extensions.reduce((a, e) => a + e.min, 0);
+  endMs = s => s.startMs + (s.durationMin + this.extMin(s)) * 60000;
+  gamingCharge = s => Math.round((s.durationMin + this.extMin(s)) / 60 * this.chargedPlayers(s.players.length) * this.rate());
+  itemsTotal = s => s.items.reduce((a, i) => a + i.price * i.qty, 0);
+  billTotal = s => this.gamingCharge(s) + this.itemsTotal(s);
+  sessionFor = id => this.state.sessions.find(s => s.id === id);
+
+  statusOf = s => {
+    const left = (this.endMs(s) - this.state.now) / 60000;
+    if (left <= 0) return {key:'over', label:'Over time', color: COL.over};
+    if (left <= 15) return {key:'soon', label:'Ending soon', color: COL.soon};
+    if (s.extensions.length) return {key:'ext', label:'Extended', color: COL.busy};
+    return {key:'busy', label:'Occupied', color: COL.busy};
+  };
+
+  remainingLabel = s => {
+    const ms = this.endMs(s) - this.state.now, over = ms < 0, a = Math.abs(ms);
+    const h = Math.floor(a / 3600000), m = Math.floor(a % 3600000 / 60000), sec = Math.floor(a % 60000 / 1000);
+    const core = h > 0 ? h + ':' + String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0')
+      : m + ':' + String(sec).padStart(2, '0');
+    return (over ? '+' : '') + core;
+  };
+
+  tag = (label, color) => 'display:inline-flex;align-items:center;font-size:11px;padding:3px 10px;border-radius:6px;color:' + color + ';border:1px solid ' + color + ';background:' + color + '1a';
+  chip = (on, extra) => 'cursor:pointer;font-family:var(--font-heading);font-size:13px;padding:7px 13px;border-radius:8px;background:' + (on ? 'rgba(150,138,224,0.16)' : 'transparent') + ';color:' + (on ? 'var(--color-accent-300)' : 'var(--color-text)') + ';border:1px solid ' + (on ? 'var(--color-accent)' : 'var(--color-divider)') + ';' + (extra || '');
+  tab = on => 'cursor:pointer;display:inline-flex;align-items:center;gap:7px;font-family:var(--font-heading);font-size:14px;padding:9px 14px;border:0;border-bottom:2px solid ' + (on ? 'var(--color-accent)' : 'transparent') + ';background:transparent;color:' + (on ? 'var(--color-text)' : 'var(--color-neutral-500)') + ';border-radius:6px 6px 0 0;';
+
+  openBooking = (stationId) => {
+    const free = this.state.stations.find(st => !this.state.sessions.some(s => s.station === st.id));
+    const pick = typeof stationId === 'number' ? stationId : (free ? free.id : 1);
+    this.setState({dialog: 'booking', form: this.blankForm(pick)});
+  };
+  closeDialog = () => this.setState({dialog: null, activeId: null});
+  setForm = patch => this.setState(s => ({form: Object.assign({}, s.form, patch)}));
+
+  startSession = () => {
+    const f = this.state.form, now = Date.now();
+    const dur = f.customMin ? Number(f.customMin) : f.durationMin;
+    const session = {
+      id: 'S-' + (this.state.sessions.length + 100), station: f.station,
+      customer: f.name || (f.players[0] || 'Walk-in'), phone: f.phone,
+      players: f.players.map((p, i) => p || 'Player ' + (i + 1)),
+      games: f.games.length ? f.games : ['Not set'], startMs: now, durationMin: dur,
+      extensions: [], items: [], notes: ''
+    };
+    this.setState(s => ({sessions: s.sessions.concat([session]), dialog: null}));
+  };
+
+  extend = (id, min) => this.setState(s => ({
+    sessions: s.sessions.map(x => x.id === id
+      ? Object.assign({}, x, {extensions: x.extensions.concat([{min, at: Date.now()}])}) : x),
+    alerts: s.alerts.filter(a => a.sid !== id)
+  }));
+
+  addItem = (id, item) => this.setState(s => ({
+    sessions: s.sessions.map(x => {
+      if (x.id !== id) return x;
+      const items = x.items.slice();
+      const idx = items.findIndex(i => i.name === item.name);
+      if (idx >= 0) items[idx] = Object.assign({}, items[idx], {qty: items[idx].qty + 1});
+      else items.push({name: item.name, price: item.price, qty: 1});
+      return Object.assign({}, x, {items});
+    })
+  }));
+
+  bumpItem = (id, name, delta) => this.setState(s => ({
+    sessions: s.sessions.map(x => x.id === id
+      ? Object.assign({}, x, {items: x.items
+          .map(i => i.name === name ? Object.assign({}, i, {qty: i.qty + delta}) : i)
+          .filter(i => i.qty > 0)}) : x)
+  }));
+
+  completePayment = () => {
+    const s = this.sessionFor(this.state.activeId);
+    if (!s) return;
+    const pay = this.state.pay, total = this.billTotal(s);
+    const method = pay.mode === 'split'
+      ? 'Split · Cash ' + money(Number(pay.cash || 0)) + ' + UPI ' + money(Number(pay.upi || 0))
+      : (pay.mode === 'cash' ? 'Cash' : 'UPI');
+    const id = 'GS-2026-00' + this.state.billNo;
+    const record = {
+      id, startMs: s.startMs, endMs: Date.now(), durationMin: s.durationMin + this.extMin(s),
+      customer: s.customer, phone: s.phone, station: s.station, players: s.players.length,
+      game: s.games.join(', '), gaming: this.gamingCharge(s), fnb: this.itemsTotal(s),
+      total, method: pay.mode === 'split' ? 'Split' : (pay.mode === 'cash' ? 'Cash' : 'UPI')
+    };
+    const receipt = {
+      id, date: new Date().toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) + ' · ' + hhmm(Date.now()),
+      meta: [
+        {k:'Customer', v: s.customer}, {k:'Mobile', v: s.phone || '—'},
+        {k:'Station', v: 'PS5 #' + s.station}, {k:'Players', v: String(s.players.length)},
+        {k:'Games', v: s.games.join(', ')},
+        {k:'Session', v: hhmm(s.startMs) + ' – ' + hhmm(this.endMs(s))}
+      ],
+      lines: [{k: 'Gaming · ' + ((s.durationMin + this.extMin(s)) / 60).toFixed(1) + ' h × ' + this.chargedPlayers(s.players.length) + ' charged', v: money(this.gamingCharge(s))}]
+        .concat(s.items.map(i => ({k: i.name + ' × ' + i.qty, v: money(i.price * i.qty)}))),
+      total: money(total), payment: 'Paid · ' + method
+    };
+    this.setState(st => ({
+      sessions: st.sessions.filter(x => x.id !== s.id),
+      history: [record].concat(st.history),
+      alerts: st.alerts.filter(a => a.sid !== s.id),
+      billNo: st.billNo + 1, dialog: 'receipt', receipt, activeId: null,
+      pay: {mode:'cash', cash:'', upi:''}
+    }));
+  };
+
+  rangeStart = () => {
+    const d = new Date(); d.setHours(0,0,0,0);
+    const r = this.state.range;
+    if (r === 'Today') return d.getTime();
+    if (r === 'Yesterday') return d.getTime() - 86400000;
+    if (r === 'This week') return d.getTime() - 6 * 86400000;
+    return d.getTime() - 29 * 86400000;
+  };
+  rangeEnd = () => {
+    const d = new Date(); d.setHours(23,59,59,999);
+    return this.state.range === 'Yesterday' ? d.getTime() - 86400000 : d.getTime();
+  };
+
+  renderVals() {
+    const st = this.state, now = st.now;
+    const active = st.activeId ? this.sessionFor(st.activeId) : null;
+    const sessionOf = id => st.sessions.find(s => s.station === id);
+    const todayStart = new Date(now); todayStart.setHours(0,0,0,0);
+    const todayBooked = st.history.filter(h => h.startMs >= todayStart.getTime()).reduce((a, h) => a + h.total, 0);
+    const running = st.sessions.reduce((a, s) => a + this.billTotal(s), 0);
+    const inRange = st.history.filter(h => h.startMs >= this.rangeStart() && h.startMs <= this.rangeEnd());
+    const sum = (arr, k) => arr.reduce((a, x) => a + x[k], 0);
+    const rev = sum(inRange, 'total'), gam = sum(inRange, 'gaming'), fnb = sum(inRange, 'fnb');
+    const hours = inRange.reduce((a, h) => a + h.durationMin, 0) / 60;
+    const gameTally = {}; inRange.forEach(h => { gameTally[h.game] = (gameTally[h.game] || 0) + 1; });
+    const topList = Object.keys(gameTally).map(k => ({k, n: gameTally[k]})).sort((a, b) => b.n - a.n).slice(0, 5);
+    const maxGame = topList.length ? topList[0].n : 1;
+    const hourTally = {}; inRange.forEach(h => { const hh = new Date(h.startMs).getHours(); hourTally[hh] = (hourTally[hh] || 0) + 1; });
+    const hourKeys = Object.keys(hourTally).map(Number).sort((a, b) => a - b);
+    const maxHour = Math.max(1, ...hourKeys.map(k => hourTally[k]));
+
+    const form = st.form, formStation = st.stations.find(s => s.id === form.station) || st.stations[0];
+    const formGames = (formStation.set === 1 ? SET1 : SET2)
+      .filter(g => g.toLowerCase().includes(form.gameQuery.toLowerCase()));
+    const dur = form.customMin ? Number(form.customMin) || 0 : form.durationMin;
+    const chargedNow = this.chargedPlayers(form.playerCount);
+    const previewTotal = Math.round(dur / 60 * chargedNow * this.rate());
+    const stationTaken = !!sessionOf(form.station);
+
+    const menuItems = MENU.map(m => ({
+      name: m.name, price: money(m.price),
+      onAdd: () => active && this.addItem(active.id, m)
+    }));
+
+    const vals = {
+      storeName: this.props.storeName ?? 'Vortex Gaming Lounge',
+      clock: new Date(now).toLocaleTimeString('en-IN', {hour:'numeric', minute:'2-digit', second:'2-digit'}),
+      isDashboard: st.view === 'dashboard', isSales: st.view === 'sales', isBlueprint: st.view === 'blueprint',
+      goDashboard: () => this.setState({view:'dashboard'}),
+      goSales: () => this.setState({view:'sales'}),
+      goBlueprint: () => this.setState({view:'blueprint'}),
+      tabDashStyle: this.tab(st.view === 'dashboard'), tabSalesStyle: this.tab(st.view === 'sales'), tabBlueStyle: this.tab(st.view === 'blueprint'),
+      openBooking: () => this.openBooking(),
+      closeDialog: this.closeDialog,
+
+      capacityLabel: st.sessions.reduce((a, s) => a + s.players.length, 0) + ' / 20',
+      stationsLabel: (5 - st.sessions.length) + ' / 5',
+      activeCount: String(st.sessions.length),
+      todayRevenue: money(todayBooked + running),
+      rateLabel: money(this.rate()) + '/hr',
+      offerLabel: this.offer() ? 'per player · 2nd free' : 'per player',
+
+      hasAlerts: st.alerts.length > 0,
+      alerts: st.alerts.map(a => ({
+        text: a.text, color: a.color,
+        onOpen: () => this.setState({dialog:'session', activeId: a.sid}),
+        onDismiss: () => this.setState(s => ({alerts: s.alerts.filter(x => x.key !== a.key)}))
+      })),
+
+      cards: st.stations.map(stn => {
+        const s = sessionOf(stn.id);
+        if (!s) return {
+          name: stn.name, setLabel: 'Disc set ' + stn.set, busy: false, free: true,
+          statusLabel: 'Available', tagStyle: this.tag('', COL.free), freeSince: stn.freeSince,
+          cardStyle: 'display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:var(--radius-lg);background:var(--color-surface);box-shadow:var(--shadow-sm);',
+          onAssign: () => this.openBooking(stn.id)
+        };
+        const status = this.statusOf(s), total = this.billTotal(s);
+        const elapsed = Math.min(1, Math.max(0, (now - s.startMs) / (this.endMs(s) - s.startMs)));
+        return {
+          name: stn.name, setLabel: 'Disc set ' + stn.set, busy: true, free: false,
+          statusLabel: status.label, tagStyle: this.tag(status.label, status.color),
+          cardStyle: 'display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:var(--radius-lg);background:var(--color-surface);box-shadow:0 0 0 1px ' + status.color + '55, 0 6px 18px rgba(0,0,0,0.45);',
+          customer: s.customer,
+          playersLabel: s.players.length + (s.players.length === 1 ? ' player' : ' players'),
+          gamesLabel: s.games.join(' · '),
+          remaining: this.remainingLabel(s), timeColor: status.color,
+          window: hhmm(s.startMs) + ' – ' + hhmm(this.endMs(s)),
+          progress: Math.round(elapsed * 100) + '%',
+          extLabel: s.extensions.length ? '+' + this.extMin(s) + ' min extended' : (s.durationMin + ' min booked'),
+          bill: money(total),
+          onOpen: () => this.setState({dialog:'session', activeId: s.id}),
+          onExtend: () => this.extend(s.id, 30),
+          onItems: () => this.setState({dialog:'session', activeId: s.id}),
+          onCheckout: () => this.setState({dialog:'checkout', activeId: s.id})
+        };
+      }),
+
+      ranges: ['Today','Yesterday','This week','This month'].map(r => ({
+        label: r, style: this.chip(st.range === r), onPick: () => this.setState({range: r})
+      })),
+      salesStats: [
+        {label:'Revenue', value: money(rev), note: inRange.length + ' sessions'},
+        {label:'Gaming', value: money(gam), note: hours.toFixed(1) + ' play hours'},
+        {label:'Food & drinks', value: money(fnb), note: rev ? Math.round(fnb / rev * 100) + '% of sales' : '—'},
+        {label:'Customers', value: String(new Set(inRange.map(h => h.customer)).size), note: 'unique names'},
+        {label:'Average bill', value: inRange.length ? money(rev / inRange.length) : '₹0', note: 'per session'},
+        {label:'Cash / UPI', value: money(sum(inRange.filter(h => h.method === 'Cash'), 'total')) + ' / ' + money(sum(inRange.filter(h => h.method !== 'Cash'), 'total')), note: 'collected'}
+      ],
+      mix: [
+        {label:'Gaming', value: money(gam), pct: rev ? Math.round(gam / rev * 100) + '%' : '0%'},
+        {label:'Snacks & drinks', value: money(fnb), pct: rev ? Math.round(fnb / rev * 100) + '%' : '0%'}
+      ],
+      topGames: topList.map(g => ({label: g.k, value: g.n + ' sessions', pct: Math.round(g.n / maxGame * 100) + '%'})),
+      peakHours: hourKeys.map(k => ({
+        label: (k % 12 || 12) + (k < 12 ? 'a' : 'p'),
+        pct: Math.round(hourTally[k] / maxHour * 100) + '%'
+      })),
+      history: inRange.slice(0, 25).map(h => ({
+        id: h.id, date: new Date(h.startMs).toLocaleDateString('en-IN', {day:'2-digit', month:'short'}) + ' ' + hhmm(h.startMs),
+        customer: h.customer, station: 'PS5 #' + h.station, players: String(h.players), game: h.game,
+        duration: h.durationMin + ' min', gaming: money(h.gaming), fnb: money(h.fnb), total: money(h.total), method: h.method
+      })),
+
+      showBooking: st.dialog === 'booking',
+      showSession: st.dialog === 'session' && !!active,
+      showCheckout: st.dialog === 'checkout' && !!active,
+      showReceipt: st.dialog === 'receipt' && !!st.receipt,
+      form,
+      onPhone: e => { const v = e.target.value; const k = this.knownBy(v); this.setForm(k ? {phone: v, name: k.name} : {phone: v}); },
+      onName: e => this.setForm({name: e.target.value}),
+      onGameQuery: e => this.setForm({gameQuery: e.target.value}),
+      onCustomMin: e => this.setForm({customMin: e.target.value}),
+      knownCustomer: !!this.knownBy(form.phone),
+      known: this.knownBy(form.phone) || {visits:'', spend:'', last:'', fav:''},
+      playerCounts: [1,2,3,4].map(n => ({
+        label: n + (n === 1 ? ' player' : ' players'), style: this.chip(form.playerCount === n),
+        onPick: () => this.setForm({playerCount: n, players: Array.from({length: n}, (_, i) => form.players[i] || '')})
+      })),
+      playerFields: form.players.map((p, i) => ({
+        value: p, placeholder: 'Player ' + (i + 1) + ' name',
+        onChange: e => { const players = form.players.slice(); players[i] = e.target.value; this.setForm({players}); }
+      })),
+      stationOptions: st.stations.map(stn => {
+        const s = sessionOf(stn.id);
+        const status = s ? this.statusOf(s) : {label:'Available', color: COL.free};
+        const on = form.station === stn.id;
+        return {
+          name: stn.name, status: status.label, statusColor: status.color, setLabel: 'Set ' + stn.set,
+          disabled: !!s,
+          style: this.chip(on, 'display:flex;flex-direction:column;gap:2px;align-items:flex-start;padding:10px 12px;' + (s ? 'opacity:0.45;cursor:not-allowed;' : '')),
+          onPick: () => { if (!s) this.setForm({station: stn.id, games: []}); }
+        };
+      }),
+      gameOptions: formGames.map(g => ({
+        label: g, style: this.chip(form.games.includes(g), 'font-size:12px;padding:6px 11px;'),
+        onToggle: () => this.setForm({games: form.games.includes(g) ? form.games.filter(x => x !== g) : form.games.concat([g])})
+      })),
+      durations: [30, 60, 120, 180, 240].map(m => ({
+        label: m < 60 ? m + ' min' : (m / 60) + ' hr', style: this.chip(!form.customMin && form.durationMin === m),
+        onPick: () => this.setForm({durationMin: m, customMin: ''})
+      })),
+      preview: {
+        window: hhmm(now) + ' – ' + hhmm(now + dur * 60000),
+        charged: chargedNow + ' of ' + form.playerCount + (this.offer() ? ' (2nd free)' : ''),
+        total: money(previewTotal)
+      },
+      bookingHint: stationTaken ? 'That station is occupied — pick a free one.'
+        : (form.games.length ? 'Ready to start.' : 'Pick at least one game.'),
+      startDisabled: stationTaken || !form.games.length || dur <= 0,
+      startSession: this.startSession,
+
+      live: active ? this.liveVals(active) : {items: [], title: '', tagStyle: '', statusLabel: ''},
+      extendOptions: [15, 30, 60].map(m => ({label: '+' + m + ' min', onPick: () => this.extend(active.id, m)})),
+      menu: menuItems,
+      goCheckout: () => this.setState({dialog:'checkout'}),
+      backToSession: () => this.setState({dialog:'session'}),
+      payModes: [['cash','Cash'],['upi','UPI'],['split','Split']].map(([k, l]) => ({
+        label: l, style: this.chip(st.pay.mode === k, 'flex:1;justify-content:center;'),
+        onPick: () => this.setState(s => ({pay: Object.assign({}, s.pay, {mode: k})}))
+      })),
+      pay: st.pay, isSplit: st.pay.mode === 'split',
+      onCash: e => { const v = e.target.value; this.setState(s => ({pay: Object.assign({}, s.pay, {cash: v})})); },
+      onUpi: e => { const v = e.target.value; this.setState(s => ({pay: Object.assign({}, s.pay, {upi: v})})); },
+      splitNote: active ? this.splitNote(active) : '',
+      splitColor: active && (Number(st.pay.cash || 0) + Number(st.pay.upi || 0)) === this.billTotal(active) ? COL.busy : COL.soon,
+      completePayment: this.completePayment,
+      receipt: st.receipt || {meta: [], lines: []},
+      printReceipt: () => window.print(),
+      blueprint: this.blueprintCards()
+    };
+    return vals;
+  }
+
+  splitNote = s => {
+    const total = this.billTotal(s), got = Number(this.state.pay.cash || 0) + Number(this.state.pay.upi || 0);
+    if (got === total) return 'Split balances.';
+    if (got < total) return money(total - got) + ' still pending — will be marked partially paid.';
+    return money(got - total) + ' over the bill.';
+  };
+
+  knownBy = phone => {
+    const book = {
+      '9825012345': {name:'Rahul Mehta', visits: 14, spend: 8420, last: '12 Aug', fav: 'GTA 5'},
+      '9998877665': {name:'Meet Shah', visits: 31, spend: 19650, last: '15 Aug', fav: 'FC 26'},
+      '9712345678': {name:'Aarav Patel', visits: 6, spend: 2760, last: '02 Aug', fav: 'WWE 2K26'}
+    };
+    const c = book[String(phone).trim()];
+    return c ? {name: c.name, visits: c.visits, spend: money(c.spend), last: c.last, fav: c.fav} : null;
+  };
+
+  liveVals = s => {
+    const status = this.statusOf(s), charged = this.chargedPlayers(s.players.length);
+    const hrs = (s.durationMin + this.extMin(s)) / 60;
+    return {
+      title: 'PS5 #' + s.station + ' · ' + s.customer,
+      statusLabel: status.label, tagStyle: this.tag(status.label, status.color),
+      remaining: this.remainingLabel(s), timeColor: status.color,
+      start: hhmm(s.startMs), end: hhmm(this.endMs(s)),
+      playersLabel: s.players.join(', '),
+      gamesLabel: s.games.join(' · '),
+      extLog: s.extensions.length
+        ? s.extensions.map(e => '+' + e.min + ' min at ' + hhmm(e.at)).join(' · ') + ' — end time and reminders recalculated'
+        : 'No extensions yet.',
+      gamingLine: 'Gaming · ' + hrs.toFixed(1) + ' h × ' + charged + ' charged of ' + s.players.length,
+      gaming: money(this.gamingCharge(s)),
+      items: s.items.map(i => ({
+        name: i.name, qty: String(i.qty), total: money(i.price * i.qty),
+        onPlus: () => this.bumpItem(s.id, i.name, 1),
+        onMinus: () => this.bumpItem(s.id, i.name, -1)
+      })),
+      total: money(this.billTotal(s))
+    };
+  };
+
+  blueprintCards = () => [
+    {kicker:'01', title:'Architecture', lines:[
+      'React front end (this prototype) → REST/RPC API → Postgres, one row per real-world event.',
+      'Session clock lives client-side but every end time is derived from start + duration + extensions, so a refresh or a second terminal shows the same countdown.',
+      'Reminder engine is a pure function of the current end time — no stored timers to go stale on extension.',
+      'Realtime channel (WebSocket) pushes station state so counter and floor tablets stay in sync.'
+    ]},
+    {kicker:'02', title:'Screens', lines:[
+      'Live floor — the home screen; five station cards, capacity strip, alerts.',
+      'New booking — one dialog: customer, players, station, games, duration.',
+      'Session manager — extend, add items, live bill.',
+      'Checkout → receipt.', 'Sales & history with date filters.',
+      'Admin: pricing, games per disc set, menu, stations, staff roles.'
+    ]},
+    {kicker:'03', title:'Staff flow', lines:[
+      'Walk-in: phone → known customer autofills → players → station → game → duration → Start. Six taps.',
+      'During play: reminders at 15 / 10 / 5 min and at expiry; Extend adds time and re-bills instantly.',
+      'End: Checkout → Cash / UPI / Split → receipt → station returns to Available.'
+    ]},
+    {kicker:'04', title:'Data model', lines:[
+      'stations(id, label, disc_set, seats, state)',
+      'customers(id, phone unique, name, visits, lifetime_spend)',
+      'sessions(id, station_id, customer_id, started_at, duration_min, status)',
+      'session_players(session_id, name) · session_games(session_id, game_id)',
+      'extensions(session_id, minutes, added_at, added_by)',
+      'order_items(session_id, item_id, unit_price, qty) — price copied at time of sale',
+      'bills(id, session_id, gaming_amount, fnb_amount, total) · payments(bill_id, method, amount)',
+      'settings(rate_per_player_hour, offers, store details) · staff(id, role)'
+    ]},
+    {kicker:'05', title:'Pricing rules', lines:[
+      '₹69 per player per hour, prorated by minutes — the rate is a setting, never hard-coded.',
+      'Opening-week offer: every second player free → charged = ceil(players ÷ 2).',
+      'Extensions bill at the same per-player rate; the bill recomputes, it is never patched.',
+      'Item prices are copied onto the order line so later price edits do not rewrite old bills.'
+    ]},
+    {kicker:'06', title:'Business rules', lines:[
+      'A station with an open session cannot be assigned again — the picker disables it.',
+      'Max 4 players per station; capacity is stations × seats, so 10 or 20 consoles need no redesign.',
+      'Extending recalculates end time and clears fired reminders for the new schedule.',
+      'Checkout is the only path that frees a station, and it always writes a bill and a payment row.',
+      'Completed sessions are immutable history; edits are new rows, not overwrites.'
+    ]}
+  ];
+}
+</script>
+</body>
+</html>
